@@ -78,6 +78,40 @@
 	/// </summary>
 	public static class SaveSystem_SimpleJSON
 	{
+		//TODO: Not bad but need to merge json first
+		//public static Dictionary<string, List<ISavable>> _savables = null;
+
+		//public static bool Register(ISavable savable, string filename)
+		//{
+		//	if (string.IsNullOrEmpty(filename) == true)
+		//	{
+		//		return false;
+		//	}
+		//	if (_savables == null)
+		//	{
+		//		_savables = new Dictionary<string, List<ISavable>>();
+		//	}
+		//	if (_savables.ContainsKey(filename) == false)
+		//	{
+		//		_savables.Add(filename, new List<ISavable>());
+		//	}
+		//	if (_savables[filename].Contains(savable) == true)
+		//	{
+		//		return false;
+		//	}
+		//	_savables[filename].Add(savable);
+		//	return true;
+		//}
+
+		//public static void Unregister(ISavable savable, string filename)
+		//{
+		//	if (_savables == null || _savables.ContainsKey(filename) == false)
+		//	{
+		//		return;
+		//	}
+		//	_savables[filename].Remove(savable);
+		//}
+
 		public static bool Save(ISavable target, string filename = "")
 		{
 			JSONObject model = target.ToSave();
@@ -103,6 +137,12 @@
 
 		public static bool Load(ISavable target, string filename = "")
 		{
+			JSONObject jsonObject;
+			return Load(target, true, filename, out jsonObject);
+		}
+
+		private static bool Load(ISavable target, bool silentMode, string filename, out JSONObject jsonSave)
+		{
 			if (string.IsNullOrEmpty(filename) == true)
 			{
 				filename = SaveSystemHelper.SAVE_FILENAME;
@@ -111,15 +151,22 @@
 			string path = SaveSystemHelper.FormatFilePath(filename);
 			if (File.Exists(path) == false)
 			{
-				Debug.LogErrorFormat("SaveSystem : fail to load file at path {0}. File doesn't exist.", path);
+				if (silentMode == false)
+				{
+					Debug.LogErrorFormat("SaveSystem : fail to load file at path {0}. File doesn't exist.", path);
+				}
+				jsonSave = null;
 				return false;
 			}
 
 			string saveContent = File.ReadAllText(path);
-			JSONObject jsonSave = JSON.Parse(saveContent) as JSONObject;
+			jsonSave = JSON.Parse(saveContent) as JSONObject;
 			if (jsonSave == null)
 			{
-				Debug.LogErrorFormat("SaveSystem : fail to parse result from {0}.", path);
+				if (silentMode == false)
+				{
+					Debug.LogErrorFormat("SaveSystem : fail to parse result from {0}.", path);
+				}
 				return false;
 			}
 
