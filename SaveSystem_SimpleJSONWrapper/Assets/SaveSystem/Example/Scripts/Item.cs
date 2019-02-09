@@ -55,7 +55,7 @@
 			return jsonObject;
 		}
 
-		public void FromSave(JSONObject jsonSave)
+		public void FromSave(JSONNode jsonSave)
 		{
 			string key = "Item " + _uniqueIndex;
 			Value = jsonSave[key].AsInt;

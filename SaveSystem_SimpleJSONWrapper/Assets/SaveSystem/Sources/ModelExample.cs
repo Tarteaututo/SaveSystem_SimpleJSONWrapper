@@ -48,7 +48,7 @@
 				return jsonObject;
 			}
 
-			public void FromSave(JSONObject jsonSave)
+			public void FromSave(JSONNode jsonSave)
 			{
 				name = jsonSave[Consts_Save.nameKey].Value;
 				index = jsonSave[Consts_Save.indexKey].AsInt;
@@ -145,7 +145,7 @@
 			return jsonObject;
 		}
 
-		public void FromSave(JSONObject jsonSave)
+		public void FromSave(JSONNode jsonSave)
 		{
 			myIntValue = jsonSave[Consts_Save.myIntValueKey].AsInt;
 			myFloatValue = jsonSave[Consts_Save.myFloatValueKey].AsFloat;
@@ -191,7 +191,7 @@
 				}
 			}
 
-			exampleClass.FromSave(jsonSave[Consts_Save.exampleClassKey] as JSONObject);
+			exampleClass.FromSave(jsonSave[Consts_Save.exampleClassKey]);
 		}
 	}
 

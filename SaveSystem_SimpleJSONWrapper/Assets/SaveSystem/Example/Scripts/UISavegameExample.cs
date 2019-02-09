@@ -5,8 +5,9 @@
 	using UnityEngine;
 	using UnityEngine.UI;
 	using SaveSystem;
+	using SaveSystem.SimpleJSON;
 
-	public class UISavegameExample : MonoBehaviour
+	public class UISavegameExample : MonoBehaviour, ISavable
 	{
 		#region Fields
 		#region Serialized
@@ -52,13 +53,36 @@
 		}
 		#endregion MonoBehaviour
 
+		#region Public
+		public JSONObject ToSave()
+		{
+			JSONObject jsonObject = new JSONObject();
+			JSONArray jsonArray = new JSONArray();
+			for (int i = 0, length = _items.Count; i < length; i++)
+			{
+				jsonArray.Add(i.ToString(), _items[i].ToSave());
+			}
+			jsonObject.Add(GetType().Name, jsonArray);
+			return jsonObject;
+		}
+
+		public void FromSave(JSONNode jsonSave)
+		{
+			JSONArray jsonArray = jsonSave[GetType().Name].AsArray;
+			for (int i = 0, length = _items.Count; i < length; i++)
+			{
+				_items[i].FromSave(jsonArray[i]);
+			}
+		}
+		#endregion Public
+
 		#region Private
 		private void SaveButton()
 		{
 			bool result = true;
 			for (int i = 0, length = _items.Count; i < length; i++)
 			{
-				result |= SaveSystem_SimpleJSON.Save(_items[i], _savegameFilename);
+				result |= SaveSystem_SimpleJSON.Save(this, _savegameFilename);
 			}
 			Debug.Log(result == true ? "Save success" : "Save fail");
 		}
@@ -68,12 +92,17 @@
 			bool result = true;
 			for (int i = 0, length = _items.Count; i < length; i++)
 			{
-				result |= SaveSystem_SimpleJSON.Load(_items[i], _savegameFilename);
+				result |= SaveSystem_SimpleJSON.Load(this, _savegameFilename);
 			}
 			Debug.Log(result == true ? "Load success" : "Load fail");
 		}
-		#endregion Private
 
+		private string FormatItemKey(int index)
+		{
+			return string.Format("Item {0}", index.ToString());
+		}
+		#endregion Private
+		
 		#endregion Methods
 	}
 }

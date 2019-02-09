@@ -178,7 +178,7 @@
 	public interface ISavable
 	{
 		JSONObject ToSave();
-		void FromSave(JSONObject jsonSave);
+		void FromSave(JSONNode jsonSave);
 	}
 
 	public static class SaveSystemHelper
