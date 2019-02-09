@@ -1,5 +1,6 @@
 ﻿namespace SaveSystem
 {
+	using System;
 	using System.Collections;
 	using System.Collections.Generic;
 	using UnityEngine;
@@ -71,7 +72,9 @@
 	}
 
 	/// <summary>
-	/// TODO: JSONArray wrapper to simplify calls
+	/// 
+	/// Notes : 
+	///		
 	/// </summary>
 	public static class SaveSystem_SimpleJSON
 	{
@@ -146,6 +149,16 @@
 		{
 			return string.Format("{0}/{1}{2}", FormatSavegameDirectoryPath(), fileName, SAVE_EXTENSION);
 		}
+
+		public static T[] ReadArray<T>(JSONNode jsonObject)
+		{
+			if (jsonObject.IsArray == false)
+			{
+				Debug.LogWarning("Failed attempt to read a jsonObject that is not an array.");
+				return null;
+			}
+			return jsonObject.AsArray.ReadArray<T>();
+		}
 	}
 
 	// object[] doesn't serialized by JsonUtility
@@ -157,6 +170,48 @@
 		public SaveModel(object[] model)
 		{
 			_model = model;
+		}
+	}
+
+	public static class JSONNodeExtension
+	{
+		public static void AddArray<T>(this JSONObject jsonObject, string key, T[] array)
+		{
+			JSONArray jsonArray = new JSONArray();
+			for (int i = 0, length = array.Length; i < length; i++)
+			{
+				string value = (string)System.Convert.ChangeType(array[i], typeof(string));
+				jsonArray.Add(value);
+			}
+			jsonObject.Add(key, jsonArray);
+		}
+
+		/// <summary>
+		/// Notes :
+		///		Activator.CreateInstance need a parameterless ctor. Some built in types doesn't have one (all ?).
+		///		https://stackoverflow.com/questions/13636274/how-to-create-new-default-instances-of-objects-that-are-stored-in-object-variabl
+		///		
+		///		Does not read class array.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="jsonArray"></param>
+		/// <returns></returns>
+
+		public static T[] ReadArray<T>(this JSONArray jsonArray)
+		{
+			int arrayLength = jsonArray.Count;
+
+			Type arrayType = typeof(T);
+			T[] arrayBuffer = default;
+
+			Array.Resize<T>(ref arrayBuffer, arrayLength);
+
+			for (int i = 0; i < arrayLength; i++)
+			{
+				arrayBuffer[i] = (T)Convert.ChangeType(jsonArray[i].Value, typeof(T));
+			}
+
+			return arrayBuffer;
 		}
 	}
 }

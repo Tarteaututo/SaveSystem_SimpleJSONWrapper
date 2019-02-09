@@ -5,6 +5,7 @@
 	using System.Collections.Generic;
 	using SimpleJSON;
 	using SaveSystem;
+	using System;
 
 	[System.Serializable]
 	public class ModelExample
@@ -34,22 +35,26 @@
 	[System.Serializable]
 	public class ModelExampleSavable : ISavable
 	{
+		public class ExampleClass { }
+		
 		public int myIntValue = 1;
 		public float myFloatValue = 1.5f;
 		public double myDoubleValue = 2.5d;
 		public string myStringValue = "this is a string";
 		public string[] myStringArray = new string[2] { "first array item", "second array item" };
+		public int[] myIntArray = new int[2] { 8, 6 };
+		public GameObject[] myGameObjectArray = new GameObject[] { };
 		public List<string> myStringList = new List<string> { "first list item", "second list item" };
 		public Dictionary<string, string> myStringDict = new Dictionary<string, string>
-	{
-		{ "Key0", "Forward"},
-		{ "Key1", "right" }
-	};
+		{
+			{ "Key0", "Forward"},
+			{ "Key1", "right" }
+		};
 		public Dictionary<KeyCode, string> myInputBinding = new Dictionary<KeyCode, string>
-	{
-		{ KeyCode.W, "Forward"},
-		{ KeyCode.D, "right" }
-	};
+		{
+			{ KeyCode.W, "Forward"},
+			{ KeyCode.D, "right" }
+		};
 
 		[SerializeField] private int myIntValueSerialized = 1;
 		[SerializeField] private float myFloatValueSerialized = 1.5f;
@@ -65,14 +70,17 @@
 			jsonObject.Add(Consts_Save.myDoubleValueKey, myDoubleValue);
 			jsonObject.Add(Consts_Save.myStringValueKey, myStringValue);
 
-			JSONArray stringArray = new JSONArray();
-			for (int i = 0, length = myStringArray.Length; i < length; i++)
-			{
-				stringArray.Add(myStringArray[i]);
-			}
-			jsonObject.Add(Consts_Save.myStringArrayKey, stringArray);
+			jsonObject.AddArray(Consts_Save.myStringArrayKey, myStringArray);
+			jsonObject.AddArray(Consts_Save.myIntArrayKey, myIntArray);
 
-			stringArray = null;
+			//JSONArray stringArray = new JSONArray();
+			//for (int i = 0, length = myStringArray.Length; i < length; i++)
+			//{
+			//	stringArray.Add(myStringArray[i]);
+			//}
+			//jsonObject.Add(Consts_Save.myStringArrayKey, stringArray);
+
+			JSONArray stringArray = null;
 			stringArray = new JSONArray();
 			for (int i = 0, length = myStringList.Count; i < length; i++)
 			{
@@ -113,14 +121,17 @@
 			myDoubleValue = jsonSave[Consts_Save.myDoubleValueKey].AsDouble;
 			myStringValue = jsonSave[Consts_Save.myStringValueKey].Value;
 
-			JSONArray jsonArray = jsonSave[Consts_Save.myStringArrayKey].AsArray;
-			myStringArray = new string[jsonArray.Count];
-			for (int i = 0, length = jsonArray.Count; i < length; i++)
-			{
-				myStringArray[i] = jsonArray[i].Value;
-			}
+			myStringArray = SaveSystemHelper.ReadArray<string>(jsonSave[Consts_Save.myStringArrayKey]);
+			myIntArray = SaveSystemHelper.ReadArray<int>(jsonSave[Consts_Save.myIntArrayKey]);
 
-			jsonArray = jsonSave[Consts_Save.myStringListKey].AsArray;
+			//JSONArray jsonArray = jsonSave[Consts_Save.myStringArrayKey].AsArray;
+			//myStringArray = new string[jsonArray.Count];
+			//for (int i = 0, length = jsonArray.Count; i < length; i++)
+			//{
+			//	myStringArray[i] = jsonArray[i].Value;
+			//}
+
+			JSONArray jsonArray = jsonSave[Consts_Save.myStringListKey].AsArray;
 			myStringList = new List<string>();
 			for (int i = 0, length = jsonArray.Count; i < length; i++)
 			{
@@ -158,6 +169,8 @@
 		public const string myDoubleValueKey = "myDoubleValue";
 		public const string myStringValueKey = "myStringValue";
 		public const string myStringArrayKey = "myStringArray";
+		public const string myIntArrayKey = "myIntArray";
+		public const string myGameObjectArrayKey = "myGameObjectArray";
 		public const string myStringListKey = "myStringList";
 		public const string myStringDictKey = "myStringDict";
 		public const string myInputBindingKey = "myInputBinding";

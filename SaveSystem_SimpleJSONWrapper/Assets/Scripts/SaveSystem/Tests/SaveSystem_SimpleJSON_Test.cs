@@ -39,6 +39,11 @@
 				Assert.IsTrue(model.myStringArray.Length == 2);
 				Assert.IsTrue(model.myStringArray[0] == comparer.myStringArray[0]);
 				Assert.IsTrue(model.myStringArray[1] == comparer.myStringArray[1]);
+
+				Assert.IsTrue(model.myIntArray.Length == 2);
+				Assert.IsTrue(model.myIntArray[0] == comparer.myIntArray[0]);
+				Assert.IsTrue(model.myIntArray[1] == comparer.myIntArray[1]);
+
 				Assert.IsTrue(model.myStringList.Count == 2);
 				Assert.IsTrue(model.myStringList[0] == comparer.myStringList[0]);
 				Assert.IsTrue(model.myStringList[1] == comparer.myStringList[1]);
@@ -66,17 +71,18 @@
 					myDoubleValue = 3.2d,
 					myStringValue = "another string value",
 					myStringArray = new string[2] { "string array value 0", "string array value 1" },
+					myIntArray = new int[2] { 4, 2 },
 					myStringList = new List<string> { "string list value 0", "string list value 1" },
 					myStringDict = new Dictionary<string, string>
-				{
-					{ "ModifiedKey0", "ModifiedValue0" },
-					{ "ModifiedKey1", "ModifiedValue1" },
-				},
+					{
+						{ "ModifiedKey0", "ModifiedValue0" },
+						{ "ModifiedKey1", "ModifiedValue1" },
+					},
 					myInputBinding = new Dictionary<KeyCode, string>
-				{
-					{ KeyCode.Z, "ModifiedForward"},
-					{ KeyCode.F, "ModifiedRight"},
-				},
+					{
+						{ KeyCode.Z, "ModifiedForward"},
+						{ KeyCode.F, "ModifiedRight"},
+					},
 				};
 
 				string filename = string.Format("{0} - SaveSystem_SimpleJSON_NewModifiedModel", SaveSystemHelper.SAVE_FILENAME);
@@ -104,6 +110,11 @@
 				Assert.IsTrue(model.myStringArray[0].Equals("string array value 0"), model.myStringArray[0]);
 				Assert.IsTrue(model.myStringArray[0].CompareTo("string array value 0") == 0, model.myStringArray[0]);
 				Assert.IsTrue(model.myStringArray[1] == "string array value 1", model.myStringArray[1]);
+
+				Assert.IsNotNull(model.myIntArray);
+				Assert.IsTrue(model.myIntArray.Length == 2);
+				Assert.IsTrue(model.myIntArray[0] == 4);
+				Assert.IsTrue(model.myIntArray[1] == 2);
 
 				Assert.IsTrue(model.myStringList.Count == 2);
 				Assert.IsTrue(model.myStringList[0] == "string list value 0");
