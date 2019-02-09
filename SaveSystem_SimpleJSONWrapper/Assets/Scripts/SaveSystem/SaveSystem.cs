@@ -175,11 +175,13 @@
 
 	public static class JSONNodeExtension
 	{
+		#region Built in Array
 		public static void AddArray<T>(this JSONObject jsonObject, string key, T[] array)
 		{
 			JSONArray jsonArray = new JSONArray();
 			for (int i = 0, length = array.Length; i < length; i++)
 			{
+				// Consider using .ToString() before
 				string value = (string)System.Convert.ChangeType(array[i], typeof(string));
 				jsonArray.Add(value);
 			}
@@ -213,5 +215,14 @@
 
 			return arrayBuffer;
 		}
+		#endregion Built in Array
+
+		#region List
+		public static void AddList<T>(this JSONObject jsonObject, string key, List<T> list)
+		{
+			jsonObject.AddArray<T>(key, list.ToArray());
+
+		}
+		#endregion List
 	}
 }

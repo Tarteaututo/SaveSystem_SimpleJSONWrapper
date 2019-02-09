@@ -35,8 +35,43 @@
 	[System.Serializable]
 	public class ModelExampleSavable : ISavable
 	{
-		public class ExampleClass { }
-		
+		public class ExampleClass : ISavable
+		{
+			public string name = "";
+			public int index = 0;
+
+			public JSONObject ToSave()
+			{
+				JSONObject jsonObject = new JSONObject();
+				jsonObject.Add(Consts_Save.nameKey, name);
+				jsonObject.Add(Consts_Save.indexKey, index);
+				return jsonObject;
+			}
+
+			public void FromSave(JSONObject jsonSave)
+			{
+				name = jsonSave[Consts_Save.nameKey].Value;
+				index = jsonSave[Consts_Save.indexKey].AsInt;
+			}
+
+			public override bool Equals(object obj)
+			{
+				ExampleClass comparer = obj as ExampleClass;
+				return
+					comparer != null &&
+					string.Compare(name, comparer.name) == 0 &&
+					index == comparer.index;
+			}
+
+			public override int GetHashCode()
+			{
+				var hashCode = 515207553;
+				hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(name);
+				hashCode = hashCode * -1521134295 + index.GetHashCode();
+				return hashCode;
+			}
+		}
+
 		public int myIntValue = 1;
 		public float myFloatValue = 1.5f;
 		public double myDoubleValue = 2.5d;
@@ -56,11 +91,7 @@
 			{ KeyCode.D, "right" }
 		};
 
-		[SerializeField] private int myIntValueSerialized = 1;
-		[SerializeField] private float myFloatValueSerialized = 1.5f;
-		[SerializeField] private float myDoubleValueSerialized = 2.5f;
-		[SerializeField] private string myStringValueSerialized = "this is a serialized string";
-		[SerializeField] public string[] myStringArraySerialized = new string[2] { "first item", "second item" };
+		public ExampleClass exampleClass = new ExampleClass();
 
 		public JSONObject ToSave()
 		{
@@ -88,7 +119,6 @@
 			}
 			jsonObject.Add(Consts_Save.myStringListKey, stringArray);
 
-
 			stringArray = null;
 			stringArray = new JSONArray();
 			foreach (KeyValuePair<string, string> item in myStringDict)
@@ -111,6 +141,7 @@
 			}
 			jsonObject.Add(Consts_Save.myInputBindingKey, stringArray);
 
+			jsonObject.Add(Consts_Save.exampleClassKey, exampleClass.ToSave());
 			return jsonObject;
 		}
 
@@ -159,6 +190,8 @@
 					myInputBinding.Add(key, nestedArrayBuffer[1]);
 				}
 			}
+
+			exampleClass.FromSave(jsonSave[Consts_Save.exampleClassKey] as JSONObject);
 		}
 	}
 
@@ -174,5 +207,9 @@
 		public const string myStringListKey = "myStringList";
 		public const string myStringDictKey = "myStringDict";
 		public const string myInputBindingKey = "myInputBinding";
+
+		public const string exampleClassKey = "exampleClass";
+		public const string nameKey = "name";
+		public const string indexKey = "index";
 	}
 }

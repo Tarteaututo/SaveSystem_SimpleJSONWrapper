@@ -59,6 +59,9 @@
 				Assert.IsTrue(model.myInputBinding[KeyCode.W] == comparer.myInputBinding[KeyCode.W]);
 				Assert.IsNotNull(model.myInputBinding[KeyCode.D]);
 				Assert.IsTrue(model.myInputBinding[KeyCode.D] == comparer.myInputBinding[KeyCode.D]);
+
+				Assert.IsNotNull(model.exampleClass);
+				Assert.IsTrue(model.exampleClass.Equals(comparer.exampleClass));
 			}
 
 			[Test]
@@ -83,6 +86,11 @@
 						{ KeyCode.Z, "ModifiedForward"},
 						{ KeyCode.F, "ModifiedRight"},
 					},
+					exampleClass = new ModelExampleSavable.ExampleClass()
+					{
+						name = "Modified name",
+						index = 42
+					}
 				};
 
 				string filename = string.Format("{0} - SaveSystem_SimpleJSON_NewModifiedModel", SaveSystemHelper.SAVE_FILENAME);
@@ -94,6 +102,7 @@
 				Assert.IsTrue(File.Exists(savegamePath));
 
 				model = new ModelExampleSavable();
+				ModelExampleSavable wrongComparer = new ModelExampleSavable();
 
 				result = SaveSystem_SimpleJSON.Load(model, filename);
 				Assert.IsTrue(result);
@@ -104,21 +113,25 @@
 				Assert.IsTrue(model.myStringValue == "another string value");
 				Assert.IsTrue(model.myStringValue.Equals("another string value"));
 				Assert.IsTrue(model.myStringValue.CompareTo("another string value") == 0);
+				Assert.IsFalse(model.myStringValue == wrongComparer.myStringValue);
 
 				Assert.IsTrue(model.myStringArray.Length == 2);
 				Assert.IsTrue(string.Compare(model.myStringArray[0], "string array value 0") == 0, model.myStringArray[0]);
 				Assert.IsTrue(model.myStringArray[0].Equals("string array value 0"), model.myStringArray[0]);
 				Assert.IsTrue(model.myStringArray[0].CompareTo("string array value 0") == 0, model.myStringArray[0]);
 				Assert.IsTrue(model.myStringArray[1] == "string array value 1", model.myStringArray[1]);
+				Assert.IsFalse(model.myStringArray[1] == wrongComparer.myStringArray[1]);
 
 				Assert.IsNotNull(model.myIntArray);
 				Assert.IsTrue(model.myIntArray.Length == 2);
 				Assert.IsTrue(model.myIntArray[0] == 4);
 				Assert.IsTrue(model.myIntArray[1] == 2);
+				Assert.IsFalse(model.myIntArray[1] == wrongComparer.myIntArray[1]);
 
 				Assert.IsTrue(model.myStringList.Count == 2);
 				Assert.IsTrue(model.myStringList[0] == "string list value 0");
 				Assert.IsTrue(model.myStringList[1] == "string list value 1");
+				Assert.IsFalse(model.myStringList[1] == wrongComparer.myStringList[1]);
 
 				Assert.IsTrue(model.myStringDict.Count == 2);
 				Assert.IsNotNull(model.myStringDict["ModifiedKey0"]);
@@ -131,6 +144,11 @@
 				Assert.IsTrue(model.myInputBinding[KeyCode.Z] == "ModifiedForward");
 				Assert.IsNotNull(model.myInputBinding[KeyCode.F]);
 				Assert.IsTrue(model.myInputBinding[KeyCode.F] == "ModifiedRight");
+
+				Assert.IsNotNull(model.exampleClass);
+				Assert.IsTrue(model.exampleClass.name == "Modified name");
+				Assert.IsTrue(model.exampleClass.index == 42);
+				Assert.IsFalse(model.exampleClass.Equals(wrongComparer));
 			}
 		}
 	}
