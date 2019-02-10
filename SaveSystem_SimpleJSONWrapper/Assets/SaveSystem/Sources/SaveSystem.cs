@@ -78,6 +78,8 @@
 	/// </summary>
 	public static class SaveSystem_SimpleJSON
 	{
+		#region TBT
+
 		//TODO: Not bad but need to merge json first
 		//public static Dictionary<string, List<ISavable>> _savables = null;
 
@@ -111,6 +113,32 @@
 		//	}
 		//	_savables[filename].Remove(savable);
 		//}
+		#endregion TBT
+
+		#region Save direct object
+		public static bool Save(JSONObject jsonObject, string filename = "")
+		{
+			if (string.IsNullOrEmpty(filename) == true)
+			{
+				filename = SaveSystemHelper.SAVE_FILENAME;
+			}
+			string path = SaveSystemHelper.FormatFilePath(filename);
+			File.WriteAllText(path, jsonObject.ToString());
+			return File.Exists(path);
+		}
+
+		public static bool Load(out JSONObject jsonObject, string filename = "")
+		{
+			if (string.IsNullOrEmpty(filename) == true)
+			{
+				filename = SaveSystemHelper.SAVE_FILENAME;
+			}
+			string path = SaveSystemHelper.FormatFilePath(filename);
+			string jsonFile = File.ReadAllText(path);
+			jsonObject = JSON.Parse(jsonFile) as JSONObject;
+			return jsonObject != null;
+		}
+		#endregion Save direct object
 
 		public static bool Save(ISavable target, string filename = "")
 		{

@@ -14,6 +14,10 @@
 		[SerializeField] private Button _saveButton = null;
 		[SerializeField] private Button _loadButton = null;
 
+		// alternative version
+		[SerializeField] private Button _altSaveButton = null;
+		[SerializeField] private Button _altLoadButton = null;
+
 		[SerializeField] private Transform _itemParent = null;
 		#endregion Serialized
 
@@ -44,16 +48,23 @@
 		{
 			_saveButton.onClick.AddListener(SaveButton);
 			_loadButton.onClick.AddListener(LoadButton);
+
+			_altSaveButton.onClick.AddListener(AlternativeSaveButton);
+			_altLoadButton.onClick.AddListener(AlternativeLoadButton);
 		}
 
 		private void OnDisable()
 		{
 			_saveButton.onClick.RemoveListener(SaveButton);
 			_loadButton.onClick.RemoveListener(LoadButton);
+
+			_altSaveButton.onClick.RemoveListener(AlternativeSaveButton);
+			_altLoadButton.onClick.RemoveListener(AlternativeLoadButton);
 		}
 		#endregion MonoBehaviour
 
-		#region Public
+		#region ISavable
+
 		public JSONObject ToSave()
 		{
 			JSONObject jsonObject = new JSONObject();
@@ -74,9 +85,7 @@
 				_items[i].FromSave(jsonArray[i]);
 			}
 		}
-		#endregion Public
 
-		#region Private
 		private void SaveButton()
 		{
 			bool result = true;
@@ -97,12 +106,55 @@
 			Debug.Log(result == true ? "Load success" : "Load fail");
 		}
 
+		#endregion ISavable
+
+		#region Alternative
+		private void AlternativeSaveButton()
+		{
+			JSONObject jsonObject = new JSONObject();
+			JSONArray itemArray = new JSONArray();
+			for (int i = 0, length = _items.Count; i < length; i++)
+			{
+				JSONObject content = new JSONObject();
+				content.Add(FormatItemKey(i), _items[i].Value);
+				itemArray.Add(content);
+			}
+
+			jsonObject.Add("UISavegameExample", itemArray);
+			SaveSystem_SimpleJSON.Save(jsonObject, "Savegame - UISavegameExample");
+		}
+
+		private void AlternativeLoadButton()
+		{
+			JSONObject jsonObject;
+			bool result = SaveSystem_SimpleJSON.Load(out jsonObject, "Savegame - UISavegameExample");
+			if (result == false)
+			{
+				Debug.LogError("Fail to read Savegame - UISavegameExample file");
+				return;
+			}
+
+			JSONArray jsonArray = jsonObject["UISavegameExample"].AsArray;
+			if (jsonArray == null)
+			{
+				Debug.LogError("Fail to parse UISavegameExample array");
+				return;
+			}
+
+			for (int i = 0, length = jsonArray.Count; i < length; i++)
+			{
+				_items[i].Value = jsonArray[i][FormatItemKey(i)].AsInt;
+			}
+		}
+
+		#endregion Alternative
+
+		#region Utils
 		private string FormatItemKey(int index)
 		{
 			return string.Format("Item {0}", index.ToString());
 		}
-		#endregion Private
-		
+		#endregion Utils
 		#endregion Methods
 	}
 }

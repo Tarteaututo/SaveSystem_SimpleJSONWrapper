@@ -22,7 +22,7 @@
 			{
 				return _value;
 			}
-			private set
+			set
 			{
 				_value = value;
 				UpdateText();
