@@ -7,6 +7,10 @@
 	using SaveSystem;
 	using System;
 
+
+	/// <summary>
+	/// Cette class est utilisée pour tester JsonUtility
+	/// </summary>
 	[System.Serializable]
 	public class ModelExample
 	{
@@ -32,9 +36,13 @@
 		[SerializeField] public string[] myStringArraySerialized = new string[2] { "first item", "second item" };
 	}
 
+	/// <summary>
+	/// Cette class est utilisée pour tester SimpleJSON
+	/// </summary>
 	[System.Serializable]
 	public class ModelExampleSavable : ISavable
 	{
+		#region Internal Class
 		public class ExampleClass : ISavable
 		{
 			public string name = "";
@@ -71,7 +79,9 @@
 				return hashCode;
 			}
 		}
+		#endregion Internal Class
 
+		#region Fields
 		public int myIntValue = 1;
 		public float myFloatValue = 1.5f;
 		public double myDoubleValue = 2.5d;
@@ -92,7 +102,9 @@
 		};
 
 		public ExampleClass exampleClass = new ExampleClass();
+		#endregion Fields
 
+		#region Methods
 		public JSONObject ToSave()
 		{
 			JSONObject jsonObject = new JSONObject();
@@ -193,6 +205,7 @@
 
 			exampleClass.FromSave(jsonSave[Consts_Save.exampleClassKey]);
 		}
+		#endregion Methods
 	}
 
 	public static class Consts_Save

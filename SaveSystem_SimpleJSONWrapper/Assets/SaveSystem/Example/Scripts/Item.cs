@@ -7,6 +7,11 @@
 	using SaveSystem.SimpleJSON;
 	using TMPro;
 	using UnityEngine.UI;
+
+	/// <summary>
+	/// Un exemple de class basique qui peut être sauvegardée mais qui n'a aucun contrôle dessus.
+	/// Son rôle dans la sauvegarde se limite à fournir les objets à save et à les mettre à jour au load.
+	/// </summary>
 	public class Item : MonoBehaviour, ISavable
 	{
 		[SerializeField] private TextMeshProUGUI _valueText = null;

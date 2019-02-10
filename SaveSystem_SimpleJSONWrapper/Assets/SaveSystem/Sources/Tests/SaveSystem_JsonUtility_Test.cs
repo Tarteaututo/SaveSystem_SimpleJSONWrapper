@@ -22,7 +22,7 @@
 			{
 				ModelExample model = new ModelExample();
 				string filename = string.Format("{0} - SaveSystem_JsonUtility_NewDefaultModel", SaveSystemHelper.SAVE_FILENAME);
-				bool result = SaveSystem_JsonUtility.ToJson_JsonUtility(model, filename);
+				bool result = SaveSystem_JsonUtility.Save(model, filename);
 
 				string savegamePath = SaveSystemHelper.FormatFilePath(filename);
 
@@ -53,7 +53,7 @@
 					2.9F,
 					"NewModifiedModel"
 				};
-				bool result = SaveSystem_JsonUtility.ToJson_JsonUtility(model, filename);
+				bool result = SaveSystem_JsonUtility.Save(model, filename);
 
 				string savegamePath = SaveSystemHelper.FormatFilePath(filename);
 

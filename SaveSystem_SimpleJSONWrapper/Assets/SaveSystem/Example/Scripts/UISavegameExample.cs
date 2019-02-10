@@ -7,9 +7,17 @@
 	using SaveSystem;
 	using SaveSystem.SimpleJSON;
 
+	/// <summary>
+	/// Cette class permet de tester en condition réel la sauvegarde.
+	/// 
+	/// Elle utilise les deux alternatives de SimpleJSON : construire l'objet à envoyer + ISavable
+	/// 
+	/// </summary>
+
 	public class UISavegameExample : MonoBehaviour, ISavable
 	{
 		#region Fields
+
 		#region Serialized
 		[SerializeField] private Button _saveButton = null;
 		[SerializeField] private Button _loadButton = null;
@@ -17,6 +25,7 @@
 		// alternative version
 		[SerializeField] private Button _altSaveButton = null;
 		[SerializeField] private Button _altLoadButton = null;
+		//
 
 		[SerializeField] private Transform _itemParent = null;
 		#endregion Serialized
@@ -65,6 +74,10 @@
 
 		#region ISavable
 
+		/// <summary>
+		/// Ici, l'utilisation de ISavable permet de chainer les appels à ToSave sur chacun des objets à sauvegarer
+		/// </summary>
+		/// <returns></returns>
 		public JSONObject ToSave()
 		{
 			JSONObject jsonObject = new JSONObject();
@@ -77,6 +90,10 @@
 			return jsonObject;
 		}
 
+		/// <summary>
+		/// Même chose pour load
+		/// </summary>
+		/// <param name="jsonSave"></param>
 		public void FromSave(JSONNode jsonSave)
 		{
 			JSONArray jsonArray = jsonSave[GetType().Name].AsArray;
@@ -86,6 +103,9 @@
 			}
 		}
 
+		/// <summary>
+		/// Un appel à Save ce fichier va déclencher l'appel à ToSave, et donc à sauvegarder tous les sous objets.
+		/// </summary>
 		private void SaveButton()
 		{
 			bool result = true;
@@ -108,6 +128,9 @@
 
 		#endregion ISavable
 
+		/// <summary>
+		/// Cette exemple est plus directe : on n'utilise pas ISavable et on rentre manuellement les données à envoyer.
+		/// </summary>
 		#region Alternative
 		private void AlternativeSaveButton()
 		{

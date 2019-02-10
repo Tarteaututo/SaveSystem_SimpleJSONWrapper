@@ -7,9 +7,19 @@
 	using System.IO;
 	using SimpleJSON;
 
+	#region First version : JsonUtility
+	/// <summary>
+	/// JSONUtility est la fonctionnalité de Unity permettant de transformer les données public ou serializé d'une class en données
+	/// répondant au standard JSON.
+	/// 
+	/// Elle ne permet que de sauvegarder toutes les données public ou serializée d'une class en une seule fois et de réécrire ces
+	/// données toujours en une seule fois.
+	/// 
+	/// Elle gère un nombre limité de types (pas de liste) et ne permet pas d'explorer le json pour pick une données précises.
+	/// </summary>
 	public static class SaveSystem_JsonUtility
 	{
-		public static bool ToJson_JsonUtility(object obj, string filename = "")
+		public static bool Save(object obj, string filename = "")
 		{
 			if (obj == null)
 			{
@@ -49,7 +59,7 @@
 			return File.Exists(path);
 		}
 
-		public static bool FromJson_JsonUtility<T>(string jsonPath, out T result)
+		public static bool Load<T>(string jsonPath, out T result)
 		{
 			if (jsonPath == string.Empty)
 			{
@@ -70,51 +80,21 @@
 			return result != null;
 		}
 	}
+	#endregion First version : JsonUtility
 
+	#region Second version SimpleJSON
 	/// <summary>
 	/// 
-	/// Notes : 
+	/// Notes : SimpleJSON est un framework open source qui permet d'écrire et lire des objets répondant aux standards du JSON.
+	/// Au contraire de JSONUility, il permet entre autre d'explorer un JSON pour récupérer des données précises.
 	///		
 	/// </summary>
 	public static class SaveSystem_SimpleJSON
 	{
-		#region TBT
-
-		//TODO: Not bad but need to merge json first
-		//public static Dictionary<string, List<ISavable>> _savables = null;
-
-		//public static bool Register(ISavable savable, string filename)
-		//{
-		//	if (string.IsNullOrEmpty(filename) == true)
-		//	{
-		//		return false;
-		//	}
-		//	if (_savables == null)
-		//	{
-		//		_savables = new Dictionary<string, List<ISavable>>();
-		//	}
-		//	if (_savables.ContainsKey(filename) == false)
-		//	{
-		//		_savables.Add(filename, new List<ISavable>());
-		//	}
-		//	if (_savables[filename].Contains(savable) == true)
-		//	{
-		//		return false;
-		//	}
-		//	_savables[filename].Add(savable);
-		//	return true;
-		//}
-
-		//public static void Unregister(ISavable savable, string filename)
-		//{
-		//	if (_savables == null || _savables.ContainsKey(filename) == false)
-		//	{
-		//		return;
-		//	}
-		//	_savables[filename].Remove(savable);
-		//}
-		#endregion TBT
-
+		///
+		/// Cette version est la manière la plus directe de créer des objets.
+		/// On fournit à Save un JSONObject qui contient les données à écrire et il s'occupe du reste.
+		///
 		#region Save direct object
 		public static bool Save(JSONObject jsonObject, string filename = "")
 		{
@@ -140,6 +120,14 @@
 		}
 		#endregion Save direct object
 
+		///
+		/// Cette version utilise l'interface ISavable pour communiquer directement avec les objets qui demandent à être sauvegarder.
+		/// De cette manière, on peut automatiser et chainer les appels à FromSave() et ToSave() à partir de plusieurs class qui héritent de ISavable,
+		/// ajouter ces données à un unique JSONObject et écrire le fichier en une seule fois sans risquer l'écrasement.
+		/// En optimisation, il peut être intéressant de merge le fichier de sauvegarde déjà existant avec les nouvelles données.
+		/// Avec le merge, on peut également flagger les classes qui ont été modifiées pour n'ajouter que les valeurs modifiées et réduire le nombre d'opérations.
+		///
+		#region ISavable
 		public static bool Save(ISavable target, string filename = "")
 		{
 			JSONObject model = target.ToSave();
@@ -165,12 +153,6 @@
 
 		public static bool Load(ISavable target, string filename = "")
 		{
-			JSONObject jsonObject;
-			return Load(target, true, filename, out jsonObject);
-		}
-
-		private static bool Load(ISavable target, bool silentMode, string filename, out JSONObject jsonSave)
-		{
 			if (string.IsNullOrEmpty(filename) == true)
 			{
 				filename = SaveSystemHelper.SAVE_FILENAME;
@@ -179,36 +161,39 @@
 			string path = SaveSystemHelper.FormatFilePath(filename);
 			if (File.Exists(path) == false)
 			{
-				if (silentMode == false)
-				{
-					Debug.LogErrorFormat("SaveSystem : fail to load file at path {0}. File doesn't exist.", path);
-				}
-				jsonSave = null;
+				Debug.LogErrorFormat("SaveSystem : fail to load file at path {0}. File doesn't exist.", path);
 				return false;
 			}
 
 			string saveContent = File.ReadAllText(path);
-			jsonSave = JSON.Parse(saveContent) as JSONObject;
+			JSONObject jsonSave = JSON.Parse(saveContent) as JSONObject;
 			if (jsonSave == null)
 			{
-				if (silentMode == false)
-				{
-					Debug.LogErrorFormat("SaveSystem : fail to parse result from {0}.", path);
-				}
+				Debug.LogErrorFormat("SaveSystem : fail to parse result from {0}.", path);
 				return false;
 			}
 
 			target.FromSave(jsonSave);
 			return true;
 		}
+
+		#endregion ISavable
 	}
 
+	/// <summary>
+	/// Afin d'augmenter les fonctionnalités de la sauvegarde, le save system a besoin de communiquer avec une variété d'objet qu'il ne connait pas à l'avance.
+	/// C'est là l'utilité de l'interface : chaque objet qui doit sauvegarder quelques chose en hérite et le save system peut le reconnaitre.
+	/// Celui-ci peut alors demander aux objets de construire des données à sauvegarder (via ToSave()) ou lui transmettre des données à charger (via FromSave(JSONNode jsonSave)).
+	/// </summary>
 	public interface ISavable
 	{
 		JSONObject ToSave();
 		void FromSave(JSONNode jsonSave);
 	}
 
+	/// <summary>
+	/// Helper : contient des fonctionnalités pour faciliter l'utilisation de SaveSystem. Pas nécessaire à son fonctionnement.
+	/// </summary>
 	public static class SaveSystemHelper
 	{
 		public const string SAVE_DIRECTORYNAME = "Savegame";
@@ -233,18 +218,6 @@
 				return null;
 			}
 			return jsonObject.AsArray.ReadArray<T>();
-		}
-	}
-
-	// object[] doesn't serialized by JsonUtility
-	[System.Serializable]
-	public class SaveModel
-	{
-		[SerializeField] private object[] _model = null;
-
-		public SaveModel(object[] model)
-		{
-			_model = model;
 		}
 	}
 
@@ -291,13 +264,20 @@
 			return arrayBuffer;
 		}
 		#endregion Built in Array
-
-		#region List
-		public static void AddList<T>(this JSONObject jsonObject, string key, List<T> list)
-		{
-			jsonObject.AddArray<T>(key, list.ToArray());
-
-		}
-		#endregion List
 	}
+	#endregion Second version SimpleJSON
+
+	#region Example of pattern that doesn't work with JSONUtility
+	// object[] doesn't serialized by JsonUtility
+	[System.Serializable]
+	public class SaveModel
+	{
+		[SerializeField] private object[] _model = null;
+
+		public SaveModel(object[] model)
+		{
+			_model = model;
+		}
+	}
+	#endregion Example of pattern that doesn't work with JSONUtility
 }
