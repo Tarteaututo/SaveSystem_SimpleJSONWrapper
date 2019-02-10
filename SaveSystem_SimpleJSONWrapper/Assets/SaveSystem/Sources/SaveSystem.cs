@@ -140,13 +140,13 @@
 					Debug.LogErrorFormat("A null savable from file {0} has been removed.", filename);
 					break;
 				}
-
-				if (jsonObject[savables[i].GetIdentifier()].IsObject == false)
+				JSONNode savableJson = jsonObject[savables[i].GetIdentifier()];
+				if (savableJson == null || savableJson.IsObject == false)
 				{
 					// The savable has not been saved yet.
 					break;
 				}
-				savables[i].FromSave(jsonObject[savables[i].GetIdentifier()]);
+				savables[i].FromSave(savableJson.AsObject);
 			}
 
 			return result;
