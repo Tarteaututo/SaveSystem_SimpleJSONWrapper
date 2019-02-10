@@ -56,7 +56,7 @@
 
 		private void SaveButton()
 		{
-			bool result = SaveSystem.Save();
+			bool result = SaveSystem.Save(mergeWithPrevious:true);
 			Debug.Log(result == true ? "Save success" : "Save fail");
 		}
 

@@ -76,7 +76,7 @@
 			_savables[filename].Remove(savable);
 		}
 
-		public static bool Save(string filename = "")
+		public static bool Save(string filename = "", bool mergeWithPrevious = false)
 		{
 			if (string.IsNullOrEmpty(filename) == true)
 			{
@@ -97,12 +97,27 @@
 
 			List<ISavableRegistrable> savables = new List<ISavableRegistrable>(_savables[filename]);
 			savables = savables.FindAll(item => item.IsDirty() == true);
-			
+
+			// legacy
+			//JSONObject jsonObject = new JSONObject();
+
+			//for (int i = 0, length = savables.Count; i < length; i++)
+			//{
+			//	jsonObject.Add(savables[i].GetIdentifier(), savables[i].ToSave());
+			//}
+
 			JSONObject jsonObject = new JSONObject();
 
+			if (mergeWithPrevious == true)
+			{
+				bool result = LoadFromFile(filename, out jsonObject, true);
+				Debug.Log(result == true ? "Load success, preparing to merge" : "Load fail, nothing to merge");
+			}
 			for (int i = 0, length = savables.Count; i < length; i++)
 			{
-				jsonObject.Add(savables[i].GetIdentifier(), savables[i].ToSave());
+				ISavableRegistrable savable = savables[i];
+				jsonObject[savable.GetIdentifier()] = savable.ToSave();
+				savable.ResetDirty();
 			}
 
 			return WriteFile(path, jsonObject.ToString());
@@ -144,7 +159,7 @@
 				if (savableJson == null || savableJson.IsObject == false)
 				{
 					// The savable has not been saved yet.
-					break;
+					continue;
 				}
 				savables[i].FromSave(savableJson.AsObject);
 			}

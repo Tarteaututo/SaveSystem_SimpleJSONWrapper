@@ -16,7 +16,7 @@
 
 		private int _value = 0;
 		private int _uniqueIndex = -1;
-
+		private bool _isDirty = false;
 		public int Value
 		{
 			get
@@ -69,7 +69,12 @@
 
 		public bool IsDirty()
 		{
-			return true;
+			return _isDirty;
+		}
+
+		public void ResetDirty()
+		{
+			_isDirty = false;
 		}
 
 		public string GetIdentifier()
@@ -90,11 +95,13 @@
 		private void Add()
 		{
 			Value++;
+			_isDirty = true;
 		}
 
 		private void Remove()
 		{
 			Value--;
+			_isDirty = true;
 		}
 
 		private void UpdateText()

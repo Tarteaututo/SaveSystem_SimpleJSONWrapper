@@ -17,6 +17,7 @@
 		JSONObject ToSave();
 		void FromSave(JSONNode jsonSave);
 		bool IsDirty();
+		void ResetDirty();
 		string GetIdentifier();
 	}
 }
