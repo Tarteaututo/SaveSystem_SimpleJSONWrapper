@@ -7,30 +7,6 @@
 	using System.IO;
 	using SimpleJSON;
 
-	/// <summary>
-	/// Register version :
-	/// 
-	///		Pour chaque ISavableRegistrable
-	///			se register à l'init
-	///			classé par filename
-	///			Set dirty if changed
-
-	///		save filename :
-	///			regarde isdirty
-	///			load la save
-	///			merge les changements
-	///			save
-	///		
-	///		load filename :
-	///			load la save
-	///			regarde is dirty
-	///			ecrase if dirty
-	///			
-	/// 
-	///		Fonctionnalité manquante :
-	///			Merge de json
-	/// </summary>
-
 	public static class SaveSystem
 	{
 		#region Fields
@@ -97,14 +73,6 @@
 
 			List<ISavableRegistrable> savables = new List<ISavableRegistrable>(_savables[filename]);
 			savables = savables.FindAll(item => item.IsDirty() == true);
-
-			// legacy
-			//JSONObject jsonObject = new JSONObject();
-
-			//for (int i = 0, length = savables.Count; i < length; i++)
-			//{
-			//	jsonObject.Add(savables[i].GetIdentifier(), savables[i].ToSave());
-			//}
 
 			JSONObject jsonObject = new JSONObject();
 
