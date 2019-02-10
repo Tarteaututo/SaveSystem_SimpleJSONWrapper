@@ -10,6 +10,7 @@
 		#region Fields
 		#region Serialized
 		[SerializeField] private Button _saveButton = null;
+		[SerializeField] private Button _saveMergeButton = null;
 		[SerializeField] private Button _loadButton = null;
 
 		[SerializeField] private Transform _itemParent = null;
@@ -42,12 +43,14 @@
 		private void OnEnable()
 		{
 			_saveButton.onClick.AddListener(SaveButton);
+			_saveMergeButton.onClick.AddListener(SaveMergeButton);
 			_loadButton.onClick.AddListener(LoadButton);
 		}
 
 		private void OnDisable()
 		{
 			_saveButton.onClick.RemoveListener(SaveButton);
+			_saveMergeButton.onClick.RemoveListener(SaveMergeButton);
 			_loadButton.onClick.RemoveListener(LoadButton);
 		}
 		#endregion MonoBehaviour
@@ -55,6 +58,12 @@
 		#region ISavable
 
 		private void SaveButton()
+		{
+			bool result = SaveSystem.Save();
+			Debug.Log(result == true ? "Save success" : "Save fail");
+		}
+
+		private void SaveMergeButton()
 		{
 			bool result = SaveSystem.Save(mergeWithPrevious:true);
 			Debug.Log(result == true ? "Save success" : "Save fail");

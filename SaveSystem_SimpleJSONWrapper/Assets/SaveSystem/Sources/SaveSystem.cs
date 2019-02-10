@@ -71,16 +71,17 @@
 				return false;
 			}
 
-			List<ISavableRegistrable> savables = new List<ISavableRegistrable>(_savables[filename]);
-			savables = savables.FindAll(item => item.IsDirty() == true);
-
 			JSONObject jsonObject = new JSONObject();
+			List<ISavableRegistrable> savables = new List<ISavableRegistrable>(_savables[filename]);
 
 			if (mergeWithPrevious == true)
 			{
+				// If we merge with previous save, we add only the dirty fields to decrease the number of operations
+				savables = savables.FindAll(item => item.IsDirty() == true);
 				bool result = LoadFromFile(filename, out jsonObject, true);
 				Debug.Log(result == true ? "Load success, preparing to merge" : "Load fail, nothing to merge");
 			}
+
 			for (int i = 0, length = savables.Count; i < length; i++)
 			{
 				ISavableRegistrable savable = savables[i];
@@ -185,7 +186,6 @@
 				jsonSave = null;
 				return false;
 			}
-
 			string saveContent = File.ReadAllText(path);
 			jsonSave = JSON.Parse(saveContent) as JSONObject;
 			if (jsonSave == null)
