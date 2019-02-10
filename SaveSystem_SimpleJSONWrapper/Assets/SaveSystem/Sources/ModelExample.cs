@@ -4,7 +4,7 @@
 	using System.Collections;
 	using System.Collections.Generic;
 	using SimpleJSON;
-	using SaveSystem;
+	using global::SaveSystem;
 	using System;
 
 	[System.Serializable]

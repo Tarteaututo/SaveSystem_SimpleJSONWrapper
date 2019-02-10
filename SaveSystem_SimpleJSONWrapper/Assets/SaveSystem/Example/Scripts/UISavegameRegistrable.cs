@@ -4,10 +4,8 @@
 	using System.Collections.Generic;
 	using UnityEngine;
 	using UnityEngine.UI;
-	using global::SaveSystem;
-	using global::SaveSystem.SimpleJSON;
 
-	public class UISavegameExample : MonoBehaviour, ISavable
+	public class UISavegameRegistrable : MonoBehaviour
 	{
 		#region Fields
 		#region Serialized
@@ -18,7 +16,7 @@
 		#endregion Serialized
 
 		#region Private
-		private List<Item> _items = new List<Item>();
+		private List<ItemRegisterable> _items = new List<ItemRegisterable>();
 		private string _savegameFilename = "UISavegameExample";
 		#endregion Private
 
@@ -31,7 +29,7 @@
 			int itemIndex = 0;
 			foreach (Transform child in _itemParent)
 			{
-				Item item = child.GetComponent<Item>();
+				ItemRegisterable item = child.GetComponent<ItemRegisterable>();
 				if (item != null)
 				{
 					_items.Add(item);
@@ -55,56 +53,22 @@
 
 		#region ISavable
 
-		public JSONObject ToSave()
-		{
-			JSONObject jsonObject = new JSONObject();
-			JSONArray jsonArray = new JSONArray();
-			for (int i = 0, length = _items.Count; i < length; i++)
-			{
-				jsonArray.Add(i.ToString(), _items[i].ToSave());
-			}
-			jsonObject.Add(GetType().Name, jsonArray);
-			return jsonObject;
-		}
-
-		public void FromSave(JSONNode jsonSave)
-		{
-			JSONArray jsonArray = jsonSave[GetType().Name].AsArray;
-			for (int i = 0, length = _items.Count; i < length; i++)
-			{
-				_items[i].FromSave(jsonArray[i]);
-			}
-		}
-
 		private void SaveButton()
 		{
 			bool result = true;
-			for (int i = 0, length = _items.Count; i < length; i++)
-			{
-				result |= SaveSystem.Save(this, _savegameFilename);
-			}
+			SaveSystem.Save();
 			Debug.Log(result == true ? "Save success" : "Save fail");
 		}
 
 		private void LoadButton()
 		{
 			bool result = true;
-			for (int i = 0, length = _items.Count; i < length; i++)
-			{
-				result |= SaveSystem.Load(this, _savegameFilename);
-			}
+			SaveSystem.Load();
 			Debug.Log(result == true ? "Load success" : "Load fail");
 		}
 
 		#endregion ISavable
-		
 
-		#region Utils
-		private string FormatItemKey(int index)
-		{
-			return string.Format("Item {0}", index.ToString());
-		}
-		#endregion Utils
 		#endregion Methods
 	}
 }

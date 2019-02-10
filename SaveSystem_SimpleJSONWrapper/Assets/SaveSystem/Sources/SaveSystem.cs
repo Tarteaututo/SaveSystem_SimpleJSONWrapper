@@ -7,182 +7,166 @@
 	using System.IO;
 	using SimpleJSON;
 
-	public static class SaveSystem_JsonUtility
-	{
-		public static bool ToJson_JsonUtility(object obj, string filename = "")
-		{
-			if (obj == null)
-			{
-				Debug.LogWarningFormat("SaveSystem : Trying to write an object to json but the object is empty.");
-				return false;
-			}
-
-			string json = JsonUtility.ToJson(obj, true);
-
-			if (json == string.Empty)
-			{
-				Debug.LogWarningFormat("SaveSystem : Trying to write {0} to json but the result of ToJson is empty.", obj.GetType().Name);
-				return false;
-			}
-
-			if (string.IsNullOrEmpty(filename) == true)
-			{
-				filename = SaveSystemHelper.SAVE_FILENAME;
-			}
-
-			string path = SaveSystemHelper.FormatSavegameDirectoryPath();
-			if (Directory.Exists(path) == false)
-			{
-				if (Directory.CreateDirectory(path) == null)
-				{
-					Debug.LogWarningFormat("SaveSystem : unable to create directory at path {0}.", path);
-					return false;
-				}
-			}
-
-			path = SaveSystemHelper.FormatFilePath(filename);
-			FileStream file = File.Create(path);
-
-			file.Dispose();
-			File.WriteAllText(path, json);
-
-			return File.Exists(path);
-		}
-
-		public static bool FromJson_JsonUtility<T>(string jsonPath, out T result)
-		{
-			if (jsonPath == string.Empty)
-			{
-				Debug.LogWarningFormat("SaveSystem : Trying to write a string to json but the string is empty.");
-				result = default;
-				return false;
-			}
-
-			string json = File.ReadAllText(jsonPath);
-			if (json == string.Empty)
-			{
-				Debug.LogWarningFormat("SaveSystem : Trying to read a file at path {0} to json but the resulted string is empty.", jsonPath);
-				result = default;
-				return false;
-			}
-
-			result = (T)JsonUtility.FromJson(json, typeof(T));
-			return result != null;
-		}
-	}
-
 	/// <summary>
+	/// Register version :
 	/// 
-	/// Notes : 
+	///		Pour chaque ISavableRegistrable
+	///			se register à l'init
+	///			classé par filename
+	///			Set dirty if changed
+
+	///		save filename :
+	///			regarde isdirty
+	///			load la save
+	///			merge les changements
+	///			save
 	///		
+	///		load filename :
+	///			load la save
+	///			regarde is dirty
+	///			ecrase if dirty
+	///			
+	/// 
+	///		Fonctionnalité manquante :
+	///			Merge de json
 	/// </summary>
-	public static class SaveSystem_SimpleJSON
+
+	public static class SaveSystem
 	{
-		#region TBT
+		#region Fields
+		public static Dictionary<string, List<ISavableRegistrable>> _savables = null;
+		#endregion Fields
 
-		//TODO: Not bad but need to merge json first
-		//public static Dictionary<string, List<ISavable>> _savables = null;
+		#region Methods
+		#region Public
+		#region Save registered ISavable
 
-		//public static bool Register(ISavable savable, string filename)
-		//{
-		//	if (string.IsNullOrEmpty(filename) == true)
-		//	{
-		//		return false;
-		//	}
-		//	if (_savables == null)
-		//	{
-		//		_savables = new Dictionary<string, List<ISavable>>();
-		//	}
-		//	if (_savables.ContainsKey(filename) == false)
-		//	{
-		//		_savables.Add(filename, new List<ISavable>());
-		//	}
-		//	if (_savables[filename].Contains(savable) == true)
-		//	{
-		//		return false;
-		//	}
-		//	_savables[filename].Add(savable);
-		//	return true;
-		//}
-
-		//public static void Unregister(ISavable savable, string filename)
-		//{
-		//	if (_savables == null || _savables.ContainsKey(filename) == false)
-		//	{
-		//		return;
-		//	}
-		//	_savables[filename].Remove(savable);
-		//}
-		#endregion TBT
-
-		#region Save direct object
-		public static bool Save(JSONObject jsonObject, string filename = "")
+		public static bool Register(ISavableRegistrable savable, string filename = "")
 		{
 			if (string.IsNullOrEmpty(filename) == true)
 			{
 				filename = SaveSystemHelper.SAVE_FILENAME;
 			}
-			string path = SaveSystemHelper.FormatFilePath(filename);
-			File.WriteAllText(path, jsonObject.ToString());
-			return File.Exists(path);
+			if (_savables == null)
+			{
+				_savables = new Dictionary<string, List<ISavableRegistrable>>();
+			}
+			if (_savables.ContainsKey(filename) == false)
+			{
+				_savables.Add(filename, new List<ISavableRegistrable>());
+			}
+			if (_savables[filename].Contains(savable) == true)
+			{
+				return false;
+			}
+			_savables[filename].Add(savable);
+			return true;
 		}
 
-		public static bool Load(out JSONObject jsonObject, string filename = "")
+		public static void Unregister(ISavableRegistrable savable, string filename = "")
 		{
 			if (string.IsNullOrEmpty(filename) == true)
 			{
 				filename = SaveSystemHelper.SAVE_FILENAME;
 			}
-			string path = SaveSystemHelper.FormatFilePath(filename);
-			string jsonFile = File.ReadAllText(path);
-			jsonObject = JSON.Parse(jsonFile) as JSONObject;
-			return jsonObject != null;
+			if (_savables == null || _savables.ContainsKey(filename) == false)
+			{
+				return;
+			}
+			_savables[filename].Remove(savable);
 		}
-		#endregion Save direct object
+
+		public static bool Save(string filename = "")
+		{
+			if (string.IsNullOrEmpty(filename) == true)
+			{
+				filename = SaveSystemHelper.SAVE_FILENAME;
+			}
+
+			if (TryCreateDirectoryIfDoesntExist() == false)
+			{
+				return false;
+			}
+			string path = SaveSystemHelper.FormatFilePath(filename);
+
+			if (_savables.ContainsKey(filename) == false)
+			{
+				Debug.LogErrorFormat("SaveSystem : no savable has been registered to its filename.", path);
+				return false;
+			}
+
+			List<ISavableRegistrable> savables = new List<ISavableRegistrable>(_savables[filename]);
+			savables = savables.FindAll(item => item.IsDirty() == true);
+			
+			JSONObject jsonObject = new JSONObject();
+
+			for (int i = 0, length = savables.Count; i < length; i++)
+			{
+				jsonObject.Add(savables[i].GetIdentifier(), savables[i].ToSave());
+			}
+
+			return WriteFile(path, jsonObject.ToString());
+		}
+
+		public static bool Load(string filename = "")
+		{
+			JSONObject jsonObject;
+			bool result = LoadFromFile(filename, out jsonObject, false);
+			if (result == true)
+			{
+				//
+
+			}
+			return result;
+		}
+
+		#endregion #region 
+
+		#region Save ISavable on demand
 
 		public static bool Save(ISavable target, string filename = "")
 		{
-			JSONObject model = target.ToSave();
 			if (string.IsNullOrEmpty(filename) == true)
 			{
 				filename = SaveSystemHelper.SAVE_FILENAME;
 			}
 
-			string path = SaveSystemHelper.FormatSavegameDirectoryPath();
-			if (Directory.Exists(path) == false)
+			if (TryCreateDirectoryIfDoesntExist() == false)
 			{
-				if (Directory.CreateDirectory(path) == null)
-				{
-					Debug.LogWarningFormat("SaveSystem : unable to create directory at path {0}.", path);
-					return false;
-				}
+				return false;
 			}
 
-			path = SaveSystemHelper.FormatFilePath(filename);
-			File.WriteAllText(path, model.ToString());
-			return File.Exists(path);
+			string path = SaveSystemHelper.FormatFilePath(filename);
+
+			// Write
+			return WriteFile(path, target.ToSave().ToString());
 		}
 
 		public static bool Load(ISavable target, string filename = "")
 		{
 			JSONObject jsonObject;
-			return Load(target, true, filename, out jsonObject);
+			bool result = LoadFromFile(filename, out jsonObject, false);
+			if (result == true)
+			{
+				target.FromSave(jsonObject);
+			}
+			return result;
 		}
+		#endregion Save ISavable on demand
 
-		private static bool Load(ISavable target, bool silentMode, string filename, out JSONObject jsonSave)
+		#endregion Public
+		#region Private
+
+		private static bool LoadFromFile(string filename, out JSONObject jsonSave, bool silentMode = false)
 		{
 			if (string.IsNullOrEmpty(filename) == true)
 			{
 				filename = SaveSystemHelper.SAVE_FILENAME;
 			}
 
-			string path = SaveSystemHelper.FormatFilePath(filename);
-			if (File.Exists(path) == false)
+			string path = GetPathFromFilename(filename, silentMode);
+			if (path == string.Empty)
 			{
-				if (silentMode == false)
-				{
-					Debug.LogErrorFormat("SaveSystem : fail to load file at path {0}. File doesn't exist.", path);
-				}
 				jsonSave = null;
 				return false;
 			}
@@ -198,54 +182,46 @@
 				return false;
 			}
 
-			target.FromSave(jsonSave);
 			return true;
 		}
-	}
 
-	public interface ISavable
-	{
-		JSONObject ToSave();
-		void FromSave(JSONNode jsonSave);
-	}
-
-	public static class SaveSystemHelper
-	{
-		public const string SAVE_DIRECTORYNAME = "Savegame";
-		public const string SAVE_FILENAME = "savegame";
-		public const string SAVE_EXTENSION = ".json";
-
-		public static string FormatSavegameDirectoryPath()
+		private static bool TryCreateDirectoryIfDoesntExist()
 		{
-			return string.Format("{0}/{1}", Application.persistentDataPath, SAVE_DIRECTORYNAME);
-		}
-
-		public static string FormatFilePath(string fileName)
-		{
-			return string.Format("{0}/{1}{2}", FormatSavegameDirectoryPath(), fileName, SAVE_EXTENSION);
-		}
-
-		public static T[] ReadArray<T>(JSONNode jsonObject)
-		{
-			if (jsonObject.IsArray == false)
+			string path = SaveSystemHelper.FormatSavegameDirectoryPath();
+			if (Directory.Exists(path) == false)
 			{
-				Debug.LogWarning("Failed attempt to read a jsonObject that is not an array.");
-				return null;
+				if (Directory.CreateDirectory(path) == null)
+				{
+					Debug.LogWarningFormat("SaveSystem : unable to create directory at path {0}.", path);
+					path = string.Empty;
+					return false;
+				}
 			}
-			return jsonObject.AsArray.ReadArray<T>();
+			return true;
 		}
-	}
 
-	// object[] doesn't serialized by JsonUtility
-	[System.Serializable]
-	public class SaveModel
-	{
-		[SerializeField] private object[] _model = null;
-
-		public SaveModel(object[] model)
+		private static bool WriteFile(string path, string content)
 		{
-			_model = model;
+			File.WriteAllText(path, content);
+			return File.Exists(path);
 		}
+
+		private static string GetPathFromFilename(string filename, bool silentMode = false)
+		{
+			string path = SaveSystemHelper.FormatFilePath(filename);
+			if (File.Exists(path) == false)
+			{
+				if (silentMode == false)
+				{
+					Debug.LogErrorFormat("SaveSystem : fail to load file at path {0}. File doesn't exist.", path);
+				}
+				path = string.Empty;
+			}
+			return path;
+		}
+		#endregion Private
+
+		#endregion Methods
 	}
 
 	public static class JSONNodeExtension

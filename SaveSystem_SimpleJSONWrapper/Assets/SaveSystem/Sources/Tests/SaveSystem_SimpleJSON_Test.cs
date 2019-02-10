@@ -17,7 +17,7 @@
 				ModelExampleSavable model = new ModelExampleSavable();
 				string filename = string.Format("{0} - SaveSystem_SimpleJSON_NewDefaultModel", SaveSystemHelper.SAVE_FILENAME);
 
-				bool result = SaveSystem_SimpleJSON.Save(model, filename);
+				bool result = SaveSystem.Save(model, filename);
 				string savegamePath = SaveSystemHelper.FormatFilePath(filename);
 
 				Assert.IsTrue(result);
@@ -28,7 +28,7 @@
 				model = new ModelExampleSavable();
 				ModelExampleSavable comparer = new ModelExampleSavable();
 
-				result = SaveSystem_SimpleJSON.Load(model, filename);
+				result = SaveSystem.Load(model, filename);
 				Assert.IsTrue(result);
 
 				Assert.IsTrue(model.myIntValue == comparer.myIntValue);
@@ -95,7 +95,7 @@
 
 				string filename = string.Format("{0} - SaveSystem_SimpleJSON_NewModifiedModel", SaveSystemHelper.SAVE_FILENAME);
 
-				bool result = SaveSystem_SimpleJSON.Save(model, filename);
+				bool result = SaveSystem.Save(model, filename);
 				string savegamePath = SaveSystemHelper.FormatFilePath(filename);
 
 				Assert.IsTrue(result);
@@ -104,7 +104,7 @@
 				model = new ModelExampleSavable();
 				ModelExampleSavable wrongComparer = new ModelExampleSavable();
 
-				result = SaveSystem_SimpleJSON.Load(model, filename);
+				result = SaveSystem.Load(model, filename);
 				Assert.IsTrue(result);
 				Assert.IsTrue(model.myIntValue == 3);
 				Assert.IsTrue(model.myFloatValue == 2.6f);

@@ -7,7 +7,8 @@
 	using global::SaveSystem.SimpleJSON;
 	using TMPro;
 	using UnityEngine.UI;
-	public class Item : MonoBehaviour, ISavable
+
+	public class ItemRegisterable : MonoBehaviour, ISavableRegistrable
 	{
 		[SerializeField] private TextMeshProUGUI _valueText = null;
 		[SerializeField] private Button _addButton = null;
@@ -29,6 +30,16 @@
 			}
 		}
 
+		private void Start()
+		{
+			SaveSystem.Register(this);
+		}
+
+		private void OnDestroy()
+		{
+			SaveSystem.Unregister(this);
+		}
+
 		private void OnEnable()
 		{
 			_addButton.onClick.AddListener(Add);
@@ -48,11 +59,22 @@
 			UpdateText();
 		}
 
-		public JSONObject ToSave()
+		#region ISavable
+		public JSONArray ToSave()
 		{
-			JSONObject jsonObject = new JSONObject();
+			JSONArray jsonObject = new JSONArray();
 			jsonObject.Add("Item " + _uniqueIndex, Value);
 			return jsonObject;
+		}
+
+		public bool IsDirty()
+		{
+			return true;
+		}
+
+		public string GetIdentifier()
+		{
+			return string.Format("{0} {1}", GetType().Name, _uniqueIndex);
 		}
 
 		public void FromSave(JSONNode jsonSave)
@@ -60,6 +82,8 @@
 			string key = "Item " + _uniqueIndex;
 			Value = jsonSave[key].AsInt;
 		}
+		#endregion ISavable
+
 		#endregion Public
 
 		#region Private
@@ -80,6 +104,6 @@
 		}
 		#endregion Private
 
-		
+
 	}
 }

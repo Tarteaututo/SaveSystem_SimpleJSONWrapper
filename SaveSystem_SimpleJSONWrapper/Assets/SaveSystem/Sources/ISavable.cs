@@ -1,0 +1,22 @@
+﻿namespace SaveSystem
+{
+	using SimpleJSON;
+
+	public interface ISavable
+	{
+		JSONObject ToSave();
+		void FromSave(JSONNode jsonSave);
+	}
+
+	/// <summary>
+	/// Purpose : enforce the common use of registerable version with standard array
+	/// </summary>
+	/// 
+	public interface ISavableRegistrable
+	{
+		JSONArray ToSave();
+		void FromSave(JSONNode jsonSave);
+		bool IsDirty();
+		string GetIdentifier();
+	}
+}
