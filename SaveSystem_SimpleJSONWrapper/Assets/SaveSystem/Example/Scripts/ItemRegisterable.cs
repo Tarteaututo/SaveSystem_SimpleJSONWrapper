@@ -25,8 +25,11 @@
 			}
 			set
 			{
-				_value = value;
-				UpdateText();
+				if (_value != value)
+				{
+					_value = value;
+					UpdateText();
+				}
 			}
 		}
 
