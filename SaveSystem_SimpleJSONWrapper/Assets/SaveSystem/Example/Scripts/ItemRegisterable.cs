@@ -32,7 +32,7 @@
 
 		private void Start()
 		{
-			SaveSystem.Register(this);
+			//SaveSystem.Register(this);
 		}
 
 		private void OnDestroy()

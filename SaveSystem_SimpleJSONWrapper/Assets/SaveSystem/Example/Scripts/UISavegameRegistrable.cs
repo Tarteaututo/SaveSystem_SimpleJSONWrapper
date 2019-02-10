@@ -34,6 +34,7 @@
 				{
 					_items.Add(item);
 					item.Initialize(itemIndex++);
+					SaveSystem.Register(item);
 				}
 			}
 		}
