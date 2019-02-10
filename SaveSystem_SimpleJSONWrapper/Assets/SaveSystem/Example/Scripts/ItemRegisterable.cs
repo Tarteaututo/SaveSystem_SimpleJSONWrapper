@@ -60,10 +60,10 @@
 		}
 
 		#region ISavable
-		public JSONArray ToSave()
+		public JSONObject ToSave()
 		{
-			JSONArray jsonObject = new JSONArray();
-			jsonObject.Add("Item " + _uniqueIndex, Value);
+			JSONObject jsonObject = new JSONObject();
+			jsonObject.Add("value", Value);
 			return jsonObject;
 		}
 
@@ -79,8 +79,7 @@
 
 		public void FromSave(JSONNode jsonSave)
 		{
-			string key = "Item " + _uniqueIndex;
-			Value = jsonSave[key].AsInt;
+			Value = jsonSave["value"].AsInt;
 		}
 		#endregion ISavable
 

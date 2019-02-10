@@ -14,7 +14,7 @@
 	/// 
 	public interface ISavableRegistrable
 	{
-		JSONArray ToSave();
+		JSONObject ToSave();
 		void FromSave(JSONNode jsonSave);
 		bool IsDirty();
 		string GetIdentifier();

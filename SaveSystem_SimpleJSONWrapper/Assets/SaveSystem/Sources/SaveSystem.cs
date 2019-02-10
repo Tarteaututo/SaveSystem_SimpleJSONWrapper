@@ -91,7 +91,7 @@
 
 			if (_savables.ContainsKey(filename) == false)
 			{
-				Debug.LogErrorFormat("SaveSystem : no savable has been registered to its filename.", path);
+				Debug.LogErrorFormat("SaveSystem : no savable has been registered to the filename you trying to save.", path);
 				return false;
 			}
 
@@ -110,13 +110,45 @@
 
 		public static bool Load(string filename = "")
 		{
-			JSONObject jsonObject;
-			bool result = LoadFromFile(filename, out jsonObject, false);
-			if (result == true)
+			if (string.IsNullOrEmpty(filename) == true)
 			{
-				//
-
+				filename = SaveSystemHelper.SAVE_FILENAME;
 			}
+
+			bool result = _savables.ContainsKey(filename);
+			if (result == false)
+			{
+				Debug.LogError("SaveSystem : no savable has been registered to the filename you're trying to load.");
+				return false;
+			}
+
+			JSONObject jsonObject;
+			result = LoadFromFile(filename, out jsonObject, false);
+			if (result == false)
+			{
+				Debug.LogErrorFormat("SaveSystem : failed to load the filename {0}", filename);
+				return false;
+			}
+
+			List<ISavableRegistrable> savables = _savables[filename];
+			for (int i = savables.Count - 1; i >= 0; i--)
+			{
+				if (savables[i] == null)
+				{
+					savables.RemoveAt(i);
+					i++;
+					Debug.LogErrorFormat("A null savable from file {0} has been removed.", filename);
+					break;
+				}
+
+				if (jsonObject[savables[i].GetIdentifier()].IsObject == false)
+				{
+					// The savable has not been saved yet.
+					break;
+				}
+				savables[i].FromSave(jsonObject[savables[i].GetIdentifier()]);
+			}
+
 			return result;
 		}
 

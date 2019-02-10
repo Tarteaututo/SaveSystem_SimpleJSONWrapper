@@ -55,15 +55,13 @@
 
 		private void SaveButton()
 		{
-			bool result = true;
-			SaveSystem.Save();
+			bool result = SaveSystem.Save();
 			Debug.Log(result == true ? "Save success" : "Save fail");
 		}
 
 		private void LoadButton()
 		{
-			bool result = true;
-			SaveSystem.Load();
+			bool result = SaveSystem.Load();
 			Debug.Log(result == true ? "Load success" : "Load fail");
 		}
 
